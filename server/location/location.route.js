@@ -4,17 +4,17 @@ const locationCtrl = require("./location.controller");
 
 const router = express.Router(); // eslint-disable-line new-cap
 
-router.route("/")
-  .get(locationCtrl.list)
-  .post(locationCtrl.create);
+router.route("/").get(locationCtrl.list).post(locationCtrl.create);
 
-router.route("/:locationId")
+router.route("/paths").get(locationCtrl.getPaths);
+
+router.route("/uploadImg").post(locationCtrl.uploadImg);
+
+router
+  .route("/:locationId")
   .get(locationCtrl.get)
   .put(locationCtrl.update)
   .delete(locationCtrl.remove);
-
-router.route('/uploadImg')
-.post(locationCtrl.uploadImg);
 
 router.param("locationId", locationCtrl.load);
 module.exports = router;

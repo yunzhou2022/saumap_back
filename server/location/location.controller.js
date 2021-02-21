@@ -2,7 +2,7 @@ const httpStatus = require("http-status");
 const formidable = require("formidable");
 const path = require("path");
 const fs = require("fs");
-const request = require("request");
+const bmapApi = require("../helpers/bmapApi");
 
 const { Location, LocationTemplate } = require("./location.model");
 
@@ -55,27 +55,29 @@ function remove(req, res, next) {
     .catch((e) => next(e));
 }
 
-function getPath(req, res, next) {
+async function getPaths(req, res, next) {
+  console.log("getPaths");
   console.log(req.query);
 
-  // request(
-  //   "http://api.map.baidu.com/directionlite/v1/walking?origin=40.01116,116.339303&destination=39.936404,116.452562&ak=6PKxc9MtxMDD5boyiB0zhH9SEMQIeuYk",
-  //   { json: true },
-  //   (err, _res, body) => {
-  //     if (_res.statusCode == 200) {
-  //       const routes = body.result.routes;
+  const { from: origin, to, type } = req.query;
+  let destination = to;
+  if (type == "poi") {
+    try {
+      const info = await bmapApi.getCoordinates(to);
+      if (info.length == 0) {
+        res.json([]);
+        return;
+      }
+      const location = info[0].location;
+      destination = `${location?.lat},${location?.lng}`;
+    } catch (error) {
+      res.json([]);
+      return;
+    }
+  }
 
-  //       const points = [];
-  //       routes.forEach((d) =>
-  //         d.steps.forEach((ste) =>
-  //           ste.path.split(";").forEach((one) => {
-  //             points.push(one.split(","));
-  //           })
-  //         )
-  //       );
-  //     }
-  //   }
-  // );
+  const paths = await bmapApi.getPaths(origin, destination);
+  res.json(paths);
 }
 
 function uploadImg(req, res, next) {
@@ -123,4 +125,13 @@ function uploadImg(req, res, next) {
   });
 }
 
-module.exports = { create, get, load, list, update, remove, uploadImg };
+module.exports = {
+  create,
+  get,
+  load,
+  list,
+  update,
+  remove,
+  uploadImg,
+  getPaths,
+};

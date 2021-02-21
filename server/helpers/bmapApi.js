@@ -12,7 +12,9 @@ function getCoordinates(
 
   return new Promise((resolve, reject) => {
     request(url, { json: true }, (err, res, body) => {
-      if (res.statusCode == 200) {
+      if (err || !res) {
+        reject(err);
+      } else if (res.statusCode == 200) {
         resolve(body.results);
       }
     });
@@ -23,9 +25,12 @@ function getPaths(
   origin = "40.01116,116.339303",
   destination = "39.936404,116.452562"
 ) {
+  destination = destination
+    .split(",")
+    .map((d) => (+d).toFixed(6))
+    .join(",");
   let url = `http://api.map.baidu.com/directionlite/v1/walking?origin=${origin}&destination=${destination}&ak=${ak}`;
   url = encodeURI(url);
-
   return new Promise((resolve, reject) => {
     request(url, { json: true }, (err, res, body) => {
       if (res.statusCode == 200) {
@@ -35,7 +40,7 @@ function getPaths(
         routes.forEach((d) =>
           d.steps.forEach((ste) =>
             ste.path.split(";").forEach((one) => {
-              points.push(one.split(","));
+              points.push(one.split(",").reverse());
             })
           )
         );
@@ -45,3 +50,8 @@ function getPaths(
     });
   });
 }
+
+module.exports = {
+  getCoordinates,
+  getPaths,
+};
