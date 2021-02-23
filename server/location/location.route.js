@@ -10,6 +10,8 @@ router.route("/paths").get(locationCtrl.getPaths);
 
 router.route("/uploadImg").post(locationCtrl.uploadImg);
 
+router.route("/getMp3").post(locationCtrl.getMp3);
+
 router
   .route("/:locationId")
   .get(locationCtrl.get)

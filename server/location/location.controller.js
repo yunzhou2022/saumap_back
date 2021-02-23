@@ -3,6 +3,7 @@ const formidable = require("formidable");
 const path = require("path");
 const fs = require("fs");
 const bmapApi = require("../helpers/bmapApi");
+const bttsApi = require("../helpers/bttsApi");
 
 const { Location, LocationTemplate } = require("./location.model");
 
@@ -33,7 +34,15 @@ function create(req, res, next) {
 }
 
 function update(req, res, next) {
-  const location = { ...req.location, ...req.body };
+  console.log("update");
+  console.log(req.body);
+  const { name, introduce, imgs } = req.body;
+  const location = req.location;
+
+  location.name = name;
+  location.introduce = introduce;
+  location.imgs = imgs;
+
   location
     .save()
     .then((savedLocation) => res.json(savedLocation))
@@ -56,9 +65,6 @@ function remove(req, res, next) {
 }
 
 async function getPaths(req, res, next) {
-  console.log("getPaths");
-  console.log(req.query);
-
   const { from: origin, to, type } = req.query;
   let destination = to;
   if (type == "poi") {
@@ -80,6 +86,20 @@ async function getPaths(req, res, next) {
   res.json(paths);
 }
 
+async function getMp3(req, res, next) {
+  console.log(req.body);
+  const { text } = req.body;
+  try {
+    const mp3Path = await bttsApi.getMp3(text);
+    console.log(mp3Path);
+    res.json({ path: mp3Path });
+  } catch (error) {
+    next(error);
+    console.log(error);
+    res.json(null);
+  }
+}
+
 function uploadImg(req, res, next) {
   const form = new formidable.IncomingForm();
   form.encoding = "utf-8";
@@ -89,7 +109,6 @@ function uploadImg(req, res, next) {
   //处理图片
   form.parse(req, function (err, fields, files) {
     console.log(fields);
-    console.log(files);
     let filename = files.file.name;
     let nameArray = filename.split(".");
     let type = nameArray[nameArray.length - 1];
@@ -112,15 +131,15 @@ function uploadImg(req, res, next) {
     let avatarName = name + time + "." + type;
     let newPath = form.uploadDir + "/" + avatarName;
     fs.renameSync(files.file.path, newPath); //重命名
-    _save(
-      {
-        ...fields,
-        imgs: [{ name: avatarName, path: "/static/img/" + avatarName }],
-      },
-      res,
-      next
-    );
-    // res.send({data:"/static/img/"+avatarName})
+    // _save(
+    //   {
+    //     ...fields,
+    //     imgs: [{ name: avatarName, path: "/static/img/" + avatarName }],
+    //   },
+    //   res,
+    //   next
+    // );
+    res.send({ path: "/static/img/" + avatarName, name: avatarName });
     // res.send('ok!');
   });
 }
@@ -134,4 +153,5 @@ module.exports = {
   remove,
   uploadImg,
   getPaths,
+  getMp3,
 };

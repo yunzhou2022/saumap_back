@@ -15,9 +15,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(compress());
 app.use(methodOverride());
 app.use(cors());
-app.use(helmet());
+// app.use(helmet());
 
 app.use("/static", express.static(path.join(__dirname, "../public")));
 app.use("/api", router);
+
+// express.static.mime.define({ "application/octet-stream": ["mp3"] });
 
 module.exports = app;
