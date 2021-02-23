@@ -46,7 +46,9 @@ function downloadMp3(url, form) {
         fileData += chunk;
       });
       res.on("end", function () {
-        let name = 11;
+        // let name = 11;
+        let date = new Date();
+        let name = "" + date.getTime();
         const mp3Path = path.join(__dirname + `/../../public/bgm/${name}.mp3`);
         fs.writeFile(mp3Path, fileData, "binary", (err) => {
           if (err) {
